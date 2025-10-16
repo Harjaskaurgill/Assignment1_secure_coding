@@ -2,6 +2,7 @@ import os
 import pymysql
 from urllib.request import urlopen
 import requests
+import subprocess
 
 db_config = {
     'host': 'mydatabase.com',
@@ -14,8 +15,21 @@ def get_user_input():
     return user_input
 
 def send_email(to, subject, body):
-    os.system(f'echo {body} | mail -s "{subject}" {to}')
+    """A03:2021 -Injection Fix
+    - Uses Subprocess.run() with argument list to avoid shell command injection
+    - Does not use shell=True or os.system().
+    - Encodes the body safely.
+    """
+    try:
+        subprocess.run(
+            ['mail', '-s', subject, to],
+            input=body.encode(),
+            check=True
+        )
+    except Exception as e:
+        print("Error sending email:", e)
 
+    
 def get_data():
     """
     A02:2021 - Cryptographic Failures Fix
